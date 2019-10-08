@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Homemoney Import+"
+  },
+  "extDescription": {
+    "message": "This extension simplifies import from PrivatBank on Homemoney."
+  },
+  "url": {
+    "message": ""
+  },
+  "loading": {
+    "message": "Loading..."
+  }
+}

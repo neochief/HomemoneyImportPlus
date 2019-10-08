@@ -1,0 +1,19 @@
+.reconciliation_transaction_theirs_item_info_category.not-ready {
+  height: 32px;
+  border: solid 1px red;
+  font-weight: bold;
+}
+
+.reconciliation_transaction_theirs_item_info_category.ready {
+  height: 32px;
+  border: solid 1px #ddd;
+  font-weight: bold;
+}
+
+.reconciliation_transaction_theirs_item.imported, .reconciliation_transaction_mine_item.imported {
+  opacity: 0.1;
+}
+
+.reconciliation_transaction_theirs_item.imported:hover, .reconciliation_transaction_mine_item.imported:hover {
+  opacity: 1;
+}
