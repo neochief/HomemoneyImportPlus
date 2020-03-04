@@ -160,14 +160,13 @@ var Import = {
                     if (amount === amount2) {
                         $transaction_theirs_div.addClass('imported');
                         $transaction_mine_div.addClass('imported');
-                        return;
+                        return false;
                     }
                 }.bind(this));
 
-                if (!$transaction_theirs_div.parents('.reconciliation_transaction').find('.reconciliation_transaction_date_title.equally').length &&
-                    !$transaction_theirs_div.is('.imported')) {
-                    $('.reconciliation_transaction_theirs_item_total_chkbox', $transaction_theirs_div).prop('checked', true);
-                }
+                category = $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_info_category').val();
+                var is_checked = !is_empty_category(category) && !$transaction_theirs_div.is('.imported');
+                $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_total_chkbox').prop('checked', is_checked);
 
             }.bind(this));
 
@@ -183,11 +182,17 @@ var Import = {
 
             $select.bind('change', function (event) {
                 var $select = $(event.target);
-                var is_ready = !is_empty_category($select.val()) || $select.parents('.reconciliation_transaction_theirs_item').is('.imported');
-                $select.toggleClass('ready', is_ready);
-                $select.toggleClass('not-ready', !is_ready);
-                this.importCategoriesFromDiv($select.parents('.reconciliation_transaction_theirs_item'), true);
-                this.initDivsFast();
+                var is_with_category = !is_empty_category($select.val());
+                var is_imported = $select.parents('.reconciliation_transaction_theirs_item').is('.imported');
+                $select.toggleClass('ready', is_with_category || is_imported);
+                $select.toggleClass('not-ready', !(is_with_category || is_imported));
+                if (is_with_category) {
+                    this.importCategoriesFromDiv($select.parents('.reconciliation_transaction_theirs_item'), true);
+                    this.initDivsFast();
+                }
+                else {
+                    $select.parents('.reconciliation_transaction_theirs_item').find('.reconciliation_transaction_theirs_item_total_chkbox').prop('checked', false);
+                }
             }.bind(this));
         }.bind(this));
     },
@@ -198,11 +203,16 @@ var Import = {
             $('.reconciliation_transaction_theirs_item', $transaction_day).each(function (i, transaction_theirs_div) {
                 var $transaction_theirs_div = $(transaction_theirs_div);
                 var category = $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_info_category').val();
-                if (is_empty_category(category)) {
-                    this.setCategoriesInDiv($transaction_theirs_div);
-                } else {
+                var is_ready = !is_empty_category(category);
+                if (is_ready) {
                     this.importCategoriesFromDiv($transaction_theirs_div);
+                } else {
+                    this.setCategoriesInDiv($transaction_theirs_div);
                 }
+
+                category = $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_info_category').val();
+                is_ready = !is_empty_category(category) && !$transaction_theirs_div.is('.imported');
+                $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_total_chkbox').prop('checked', is_ready);
             }.bind(this));
         }.bind(this));
     },

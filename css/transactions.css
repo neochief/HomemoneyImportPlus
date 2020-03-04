@@ -1,0 +1,10 @@
+#page-box {
+  min-width: auto !important;
+  max-width: none !important;
+  margin: 0px 30px !important;
+}
+
+#page {
+  width: auto !important;
+  margin: 0px 30px !important;
+}

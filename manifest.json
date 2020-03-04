@@ -35,6 +35,18 @@
       "css": [
         "css/import.css"
       ]
+    },
+    {
+      "matches": [
+        "https://homemoney.ua/app/account.aspx?*"
+      ],
+      "js": [
+        "js/lib/jquery.min.js",
+        "js/transactions.js"
+      ],
+      "css": [
+        "css/transactions.css"
+      ]
     }
   ]
 }

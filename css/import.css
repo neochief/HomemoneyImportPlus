@@ -17,3 +17,34 @@
 .reconciliation_transaction_theirs_item.imported:hover, .reconciliation_transaction_mine_item.imported:hover {
   opacity: 1;
 }
+
+.reconciliation_transaction_date_title_theirs {
+  width: calc(70% - 10px) !important;
+}
+
+#page-box {
+  min-width: auto !important;
+  max-width: none !important;
+  margin: 0px 30px !important;
+}
+
+#page {
+  width: auto !important;
+  margin: 0px 30px !important;
+}
+
+.reconciliation_transaction_theirs {
+  width: 70% !important;
+}
+
+.reconciliation_transaction_theirs_item_info {
+  width: calc(100% - 100px) !important;
+}
+
+.reconciliation_transaction_theirs_item_info_description {
+  width: 99% !important;
+}
+
+.reconciliation_transaction_theirs_item_total_chkbox {
+  width: 50px;
+}
