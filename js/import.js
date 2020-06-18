@@ -33,7 +33,7 @@ var Categories = {
         }
     },
 
-    set: function (description, category, amount, overrideIfExisting) {
+    set: function (description, category, amount, account, overrideIfExisting) {
         description = this.normalizeDescription(description);
         if (!description) {
             return;
@@ -46,17 +46,21 @@ var Categories = {
 
         amount = this.normalizeAmount(amount);
 
-        if (overrideIfExisting || typeof this.data[description] === "undefined") {
-            this.data[description] = category;
+        if (typeof this.data[account] === "undefined") {
+            this.data[account] = {};
+        }
+
+        if (overrideIfExisting || typeof this.data[account][description] === "undefined") {
+            this.data[account][description] = category;
             this.save();
         }
     },
 
-    findCategory: function (description, amount) {
+    findCategory: function (description, amount, account) {
         description = this.normalizeDescription(description);
         amount = this.normalizeAmount(amount);
 
-        return this.data[description] || null;
+        return this.data[account][description] || null;
     },
 
     normalizeDescription: function (description) {
@@ -124,6 +128,7 @@ var Import = {
 
         $('.reconciliation_transaction').each(function (i, transaction_day) {
             var $transaction_day = $(transaction_day);
+            var is_day_settled_equally = $('.reconciliation_transaction_date_title.equally', $transaction_day).length;
 
             $('.reconciliation_transaction_theirs_item', $transaction_day).each(function (i, transaction_theirs_div) {
                 var $transaction_theirs_div = $(transaction_theirs_div);
@@ -164,9 +169,21 @@ var Import = {
                     }
                 }.bind(this));
 
-                category = $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_info_category').val();
-                var is_checked = !is_empty_category(category) && !$transaction_theirs_div.is('.imported');
-                $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_total_chkbox').prop('checked', is_checked);
+                if (is_day_settled_equally) {
+                    $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_total_chkbox').prop('checked', false);
+                }
+                else {
+                    category = $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_info_category').val();
+                    var is_checked = !is_empty_category(category) && !$transaction_theirs_div.is('.imported');
+                    $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_total_chkbox').prop('checked', is_checked);
+                }
+
+                $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_total_chkbox').change(function(event){
+                    var $checkbox = $(event.target);
+                    if (!$checkbox.prop('checked')) {
+                        $checkbox.parents('.reconciliation_transaction_theirs_item').find('.reconciliation_transaction_theirs_item_info_category').val('empty');
+                    }
+                });
 
             }.bind(this));
 
@@ -188,7 +205,7 @@ var Import = {
                 $select.toggleClass('not-ready', !(is_with_category || is_imported));
                 if (is_with_category) {
                     this.importCategoriesFromDiv($select.parents('.reconciliation_transaction_theirs_item'), true);
-                    this.initDivsFast();
+                    this.initDivsFast($select.parents('.reconciliation_transaction_theirs_item')[0]);
                 }
                 else {
                     $select.parents('.reconciliation_transaction_theirs_item').find('.reconciliation_transaction_theirs_item_total_chkbox').prop('checked', false);
@@ -197,10 +214,19 @@ var Import = {
         }.bind(this));
     },
 
-    initDivsFast: function() {
+    initDivsFast: function(afterThisItem) {
+        var canInit = !afterThisItem;
         $('.reconciliation_transaction').each(function (i, transaction_day) {
             var $transaction_day = $(transaction_day);
             $('.reconciliation_transaction_theirs_item', $transaction_day).each(function (i, transaction_theirs_div) {
+                // Only init after the passed element (if any).
+                if (!canInit) {
+                    if (transaction_theirs_div === afterThisItem) {
+                        canInit = true;
+                    }
+                    return;
+                }
+
                 var $transaction_theirs_div = $(transaction_theirs_div);
                 var category = $transaction_theirs_div.find('.reconciliation_transaction_theirs_item_info_category').val();
                 var is_ready = !is_empty_category(category);
@@ -221,15 +247,17 @@ var Import = {
         var description = $transaction_div.find('.reconciliation_transaction_theirs_item_info_description').val();
         var category = $transaction_div.find('.reconciliation_transaction_theirs_item_info_category').val();
         var amount = $transaction_div.find('.reconciliation_transaction_theirs_item_total_val').val();
+        var account = $('.reconciliation_title_mine').text().replace(/( [$€₴₽])?$/, '');
 
-        Categories.set(description, category, amount, overrideIfExisting);
+        Categories.set(description, category, amount, account, overrideIfExisting);
     },
 
     setCategoriesInDiv: function ($transaction_div, reinit) {
         var description = $transaction_div.find('.reconciliation_transaction_theirs_item_info_description').val();
         var amount = $transaction_div.find('.reconciliation_transaction_theirs_item_total_val').val();
+        var account = $('.reconciliation_title_mine').text().replace(/( [$€₴₽])?$/, '');
 
-        var category = Categories.findCategory(description, amount);
+        var category = Categories.findCategory(description, amount, account);
         if (category) {
             $transaction_div.find('.reconciliation_transaction_theirs_item_info_category').addClass('ready').val(category);
         }
