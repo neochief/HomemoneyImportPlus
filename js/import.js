@@ -58,7 +58,10 @@ var Categories = {
 
     findCategory: function (description, amount, account) {
         description = this.normalizeDescription(description);
-        amount = this.normalizeAmount(amount);
+
+        if (typeof this.data[account] === "undefined") {
+            this.data[account] = {};
+        }
 
         return this.data[account][description] || null;
     },
