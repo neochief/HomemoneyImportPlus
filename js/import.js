@@ -15,25 +15,47 @@ var is_ignored_transaction = function (t) {
 };
 
 var Categories = {
+    accountId: {},
     data: {},
+
+    getAccountID: function() {
+        var query = window.location.search;
+        var accArray = query.match(/acchm=([0-9]+)/) || [""]; //could also use null for empty value
+        var accNum = accArray[1] || "";
+        return accNum;
+    },
 
     load: function () {
         try {
+            this.accountId = this.getAccountID();
             var localCategories = localStorage.getItem('categories');
             this.data = JSON.parse(localCategories) || {};
+            this.data[this.accountId] = this.data[this.accountId] || {};
         } catch (e) {
+            this.data = {};
         }
     },
 
     save: function () {
         try {
-            var localCategories = JSON.stringify(localCategories);
+            this.data[this.accountId] = this.data[this.accountId] || {};
+            var localCategories = JSON.stringify(this.data);
             localStorage.setItem('categories', localCategories);
         } catch (e) {
         }
     },
 
-    set: function (description, category, amount, account, overrideIfExisting) {
+    getData: function(id) {
+        this.data[this.accountId] = this.data[this.accountId] || {};
+        return this.data[this.accountId][id];
+    },
+
+    setData: function(id, value) {
+        this.data[this.accountId] = this.data[this.accountId] || {};
+        this.data[this.accountId][id] = value;
+    },
+
+    set: function (description, category, amount, overrideIfExisting) {
         description = this.normalizeDescription(description);
         if (!description) {
             return;
@@ -46,24 +68,17 @@ var Categories = {
 
         amount = this.normalizeAmount(amount);
 
-        if (typeof this.data[account] === "undefined") {
-            this.data[account] = {};
-        }
-
-        if (overrideIfExisting || typeof this.data[account][description] === "undefined") {
-            this.data[account][description] = category;
+        if (overrideIfExisting || typeof this.getData(description) === "undefined") {
+            this.setData(description, category);
             this.save();
         }
     },
 
-    findCategory: function (description, amount, account) {
+    findCategory: function (description, amount) {
         description = this.normalizeDescription(description);
+        amount = this.normalizeAmount(amount);
 
-        if (typeof this.data[account] === "undefined") {
-            this.data[account] = {};
-        }
-
-        return this.data[account][description] || null;
+        return this.getData(description) || null;
     },
 
     normalizeDescription: function (description) {
@@ -250,17 +265,15 @@ var Import = {
         var description = $transaction_div.find('.reconciliation_transaction_theirs_item_info_description').val();
         var category = $transaction_div.find('.reconciliation_transaction_theirs_item_info_category').val();
         var amount = $transaction_div.find('.reconciliation_transaction_theirs_item_total_val').val();
-        var account = $('.reconciliation_title_mine').text().replace(/( [$€₴₽])?$/, '');
 
-        Categories.set(description, category, amount, account, overrideIfExisting);
+        Categories.set(description, category, amount, overrideIfExisting);
     },
 
     setCategoriesInDiv: function ($transaction_div, reinit) {
         var description = $transaction_div.find('.reconciliation_transaction_theirs_item_info_description').val();
         var amount = $transaction_div.find('.reconciliation_transaction_theirs_item_total_val').val();
-        var account = $('.reconciliation_title_mine').text().replace(/( [$€₴₽])?$/, '');
 
-        var category = Categories.findCategory(description, amount, account);
+        var category = Categories.findCategory(description, amount);
         if (category) {
             $transaction_div.find('.reconciliation_transaction_theirs_item_info_category').addClass('ready').val(category);
         }
